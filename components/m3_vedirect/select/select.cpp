@@ -208,7 +208,7 @@ void Select::publish_index_(size_t index) {
   this->state = this->traits_().options()[index];
   ESP_LOGD(TAG, "'%s': Sending state %s (index %zi)", this->get_name().c_str(), this->state.c_str(), index);
 #endif
-  this->state_callback_.call(this->traits_().options()[index]);
+  this->state_callback_.call(index);
 }
 
 void Select::publish_unknown_() {
@@ -222,7 +222,7 @@ void Select::publish_unknown_() {
 #else
   this->state = "unknown";
 #endif
-  this->state_callback_.call("");
+ this->state_callback_.call(0);
 }
 }  // namespace m3_vedirect
 }  // namespace esphome
