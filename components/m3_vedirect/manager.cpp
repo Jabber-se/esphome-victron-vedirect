@@ -106,7 +106,10 @@ void Manager::dump_config() {
         break;
       case 1:
         text_stats = this->text_registers_.get_stats();
-        stats = text_stats;
+        stats.capacity = text_stats.capacity;
+        stats.size = text_stats.size;
+        stats.max_size = text_stats.max_size;
+        stats.collisions = text_stats.collisions;
         map_name = "TEXT";
         break;
     }
@@ -217,8 +220,8 @@ void Manager::init_entity(EntityBase *entity, const REG_DEF *reg_def, const char
       name = strdup(reg_name_buf);
     }
   }
-# entity->set_name(name);
-# entity->set_object_id(name);
+// entity->set_name(name);
+// entity->set_object_id(name);
 }
 
 #if defined(VEDIRECT_USE_HEXFRAME)
