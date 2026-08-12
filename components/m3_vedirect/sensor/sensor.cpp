@@ -54,20 +54,18 @@ void Sensor::link_disconnected_() {
 }
 
 void Sensor::init_reg_def_() {
+  // Динамическая установка юнитов и классов устройств из C++ больше не поддерживается ESPHome.
+  // Все настройки единиц измерения теперь задаются автоматически генератором конфигурации из вашего YAML.
+  
+  /* 
   auto reg_def = this->get_reg_def();
   if (reg_def->unit < REG_DEF::UNIT_COUNT) {
     if (this->get_unit_of_measurement().empty()) {
-      // Динамическая установка юнитов из рантайма C++ больше не поддерживается ESPHome.
-      // Настройки будут браться на этапе генерации из вашего YAML-файла.
-      // this->set_unit_of_measurement(REG_DEF::UNITS[reg_def->unit]);
-      // this->set_device_class(UNIT_TO_DEVICE_CLASS[reg_def->unit]);
-    }
-    
-    // Если в структуре предусмотрена кастомная функция обработки HEX, переопределяем её
-    if (REG_DEF::HEX_PARSE_FUNC[reg_def->unit]) {
-      this->parse_hex_func_ = REG_DEF::HEX_PARSE_FUNC[reg_def->unit];
+      this->set_unit_of_measurement(REG_DEF::UNITS[reg_def->unit]);
+      this->set_device_class(UNIT_TO_DEVICE_CLASS[reg_def->unit]);
     }
   }
+  */
 }
 
 #if defined(VEDIRECT_USE_HEXFRAME)
