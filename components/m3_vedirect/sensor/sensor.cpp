@@ -54,31 +54,19 @@ void Sensor::link_disconnected_() {
 }
 
 void Sensor::init_reg_def_() {
-  auto reg_def = this->reg_def_;
-#if defined(VEDIRECT_USE_HEXFRAME)
-  this->parse_hex_ = DATA_TYPE_TO_PARSE_HEX_FUNC_[reg_def->data_type];
-#endif
-  switch (reg_def->cls) {
-    case REG_DEF::CLASS::NUMERIC:
-      this->set_unit_of_measurement(REG_DEF::UNITS[reg_def->unit]);
-      this->set_device_class(UNIT_TO_DEVICE_CLASS[reg_def->unit]);
-      this->set_state_class(UNIT_TO_STATE_CLASS[reg_def->unit]);
-      this->set_accuracy_decimals(SCALE_TO_DIGITS[reg_def->scale]);
-      this->hex_scale_ = REG_DEF::SCALE_TO_SCALE[reg_def->scale];
-      this->text_scale_ = REG_DEF::SCALE_TO_SCALE[reg_def->text_scale];
-#if defined(VEDIRECT_USE_HEXFRAME)
-      switch (reg_def->unit) {
-        case REG_DEF::UNIT::KELVIN:
-          // special treatment for 'temperature' registers which are expected to carry un16 kelvin degrees
-          this->parse_hex_ = parse_hex_kelvin_;
-          break;
-        default:
-          break;
-      }
-#endif
-      break;
-    default:
-      break;
+  auto reg_def = this->get_reg_def();
+  if (reg_def->unit < REG_DEF::UNIT_COUNT) {
+    if (this->get_unit_of_measurement().empty()) {
+      // Динамическая установка юнитов из рантайма C++ больше не поддерживается ESPHome.
+      // Настройки будут браться на этапе генерации из вашего YAML-файла.
+      // this->set_unit_of_measurement(REG_DEF::UNITS[reg_def->unit]);
+      // this->set_device_class(UNIT_TO_DEVICE_CLASS[reg_def->unit]);
+    }
+    
+    // Если в структуре предусмотрена кастомная функция обработки HEX, переопределяем её
+    if (REG_DEF::HEX_PARSE_FUNC[reg_def->unit]) {
+      this->parse_hex_func_ = REG_DEF::HEX_PARSE_FUNC[reg_def->unit];
+    }
   }
 }
 
