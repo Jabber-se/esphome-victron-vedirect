@@ -95,34 +95,32 @@ void Manager::loop() {
 
 void Manager::dump_config() {
 #if defined(VEDIRECT_USE_TEXTFRAME)
-  HexRegistersMap::stats stats;
-  TextRegistersMap::stats text_stats;
   const char *map_name;
   for (int i = 0; i < 2; ++i) {
     switch (i) {
-      case 0:
-        stats = this->hex_registers_.get_stats();
+      case 0: {
+        auto stats = this->hex_registers_.get_stats();
         map_name = "HEX";
+        ESP_LOGCONFIG(this->logtag_,
+                      "%s Registers Map stats: elements=%zu, fill_factor=%.2f, load_average=%.2f, load_stddev=%.2f",
+                      map_name, stats.num_elements, stats.fill_factor, stats.load_average, stats.load_stddev);
         break;
-      case 1:
-        text_stats = this->text_registers_.get_stats();
-        stats.capacity = text_stats.capacity;
-        stats.size = text_stats.size;
-        stats.max_size = text_stats.max_size;
-        stats.collisions = text_stats.collisions;
+      }
+      case 1: {
+        auto text_stats = this->text_registers_.get_stats();
         map_name = "TEXT";
+        ESP_LOGCONFIG(this->logtag_,
+                      "%s Registers Map stats: elements=%zu, fill_factor=%.2f, load_average=%.2f, load_stddev=%.2f",
+                      map_name, text_stats.num_elements, text_stats.fill_factor, text_stats.load_average, text_stats.load_stddev);
         break;
+      }
     }
-    ESP_LOGCONFIG(this->logtag_,
-                  "%s Registers Map stats: elements=%zu, fill_factor=%.2f, load_average=%.2f, load_stddev=%.2f",
-                  map_name, stats.num_elements, stats.fill_factor, stats.load_average, stats.load_stddev);
   }
 #else
   auto stats = this->hex_registers_.get_stats();
   ESP_LOGCONFIG(this->logtag_,
                 "HEX Registers Map stats: elements=%zu, fill_factor=%.2f, load_average=%.2f, load_stddev=%.2f",
                 stats.num_elements, stats.fill_factor, stats.load_average, stats.load_stddev);
-
 #endif
 
 #if defined(ESPHOME_LOG_HAS_VERBOSE)
