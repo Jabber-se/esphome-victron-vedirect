@@ -13,7 +13,7 @@ namespace m3_ve_reg {
 
 // clang-format on
 
-#pragma pack(push, 1)
+//#pragma pack(push, 1)
 
 /// @brief Base class acting as 'enum helper' for registers containing enumerated values
 struct ENUM_DEF {
@@ -28,7 +28,7 @@ struct ENUM_DEF {
     enum_t value;
     const char *label;
     bool operator<(const enum_t &value) const { return this->value < value; }
-  } __attribute__((aligned(4)));
+  };
 
   struct LOOKUP_RESULT {
     int index;
@@ -159,7 +159,7 @@ struct REG_DEF {
     };
   };
 
-  static const REG_DEF DEFS[TYPE::TYPE_COUNT];
+  __attribute__((aligned(4))) static const REG_DEF DEFS[TYPE::TYPE_COUNT];
   bool operator<(const register_id_t register_id) const { return this->register_id < register_id; }
   static const REG_DEF *find_register_id(register_id_t register_id);
   static const REG_DEF *find_type(TYPE type) { return (type < ARRAY_COUNT(DEFS)) ? DEFS + type : nullptr; }
@@ -246,6 +246,6 @@ struct TEXT_DEF {
   static const TEXT_DEF *find_type(REG_DEF::TYPE register_type);
 };
 
-#pragma pack(pop)
+//#pragma pack(pop)
 
 }  // namespace m3_ve_reg
