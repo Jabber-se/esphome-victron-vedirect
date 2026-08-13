@@ -28,7 +28,7 @@ struct ENUM_DEF {
     enum_t value;
     const char *label;
     bool operator<(const enum_t &value) const { return this->value < value; }
-  };
+  } __attribute__((aligned(4)));
 
   struct LOOKUP_RESULT {
     int index;
