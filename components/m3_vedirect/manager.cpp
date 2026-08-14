@@ -64,7 +64,7 @@ void Manager::loop() {
   const int millis_ = millis();
   auto available = this->available();
   if (available) {
-    uint8_t frame_buf[256];
+    uint8_t frame_buf[256]; // Размер 256 возвращен на место
     if (available > sizeof(frame_buf))
       available = sizeof(frame_buf);
     this->read_array(frame_buf, available);
@@ -89,6 +89,11 @@ void Manager::loop() {
     if (request->timeout < millis_) {
       this->request_response_(request, nullptr, Error::TIMEOUT);
     }
+  }
+
+  // НАША ПРАВКА: Если опрос стоит на паузе в начале круга, и порт свободен — проверяем, пора ли запустить новый круг
+  if (this->connected_ && this->is_polling() && this->polling_registers_it_ == this->hex_registers_.begin() && !this->is_request_pending()) {
+    this->poll_next_register_();
   }
 #endif
 }
@@ -363,7 +368,12 @@ void Manager::request_response_(Request *request, const HexFrame *response, Erro
     // all requests processed
     this->requests_read_ = nullptr;
     if (this->is_polling()) {
-      this->poll_next_register_();
+      // НАША ПРАВКА: Если круг опроса дошел до конца, не стартуем новый круг мгновенно
+      if (this->polling_registers_it_.is_end() || this->polling_registers_it_ == this->hex_registers_.begin()) {
+        // Опрос завершен всей пачки регистров, уходим на покой до таймера
+      } else {
+        this->poll_next_register_();
+      }
     }
   } else {
     this->request_trigger_(request);
@@ -371,14 +381,30 @@ void Manager::request_response_(Request *request, const HexFrame *response, Erro
 }
 
 void Manager::poll_next_register_() {
-  // TODO: skip already updated registers and/or TEXT registers
+  static uint32_t last_full_poll_time = 0;
+  uint32_t now = millis();
+
+  // НАША ПРАВКА: Если мы стоим в начале круга, проверяем, прошло ли 10 секунд тишины
+  if (this->polling_registers_it_ == this->hex_registers_.begin()) {
+    if (now - last_full_poll_time < 10000) {
+      return; // 10 секунд еще не прошло, выходим и даем Wi-Fi работать спокойно
+    }
+    last_full_poll_time = now; // Фиксируем старт нового круга опроса
+  }
+
   register_id_t register_id = this->polling_registers_it_->bucket_key();
   this->request_get(register_id, [this, register_id](const HexFrame *, uint8_t) {
     while (register_id == this->polling_registers_it_->bucket_key()) {
       if ((++this->polling_registers_it_).is_end()) {
-        ESP_LOGD(this->logtag_, "Polling end");
+        ESP_LOGD(this->logtag_, "Polling end. Quiet time for 10 seconds started.");
+        // Сбрасываем итератор в начало, чтобы подготовить следующий круг через 10 секунд
+        this->polling_registers_it_ = this->hex_registers_.begin();
         break;
       }
+    }
+    // Если круг продолжается — запрашиваем следующий регистр
+    if (!this->polling_registers_it_.is_end() && this->polling_registers_it_ != this->hex_registers_.begin()) {
+      this->poll_next_register_();
     }
   });
 }
